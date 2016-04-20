@@ -13,14 +13,7 @@ Then restart snmpd:
 
 ### COMMENTS
 You would first run mrtg cfgmaker with the basenet template (considering you have apache with mrtg vhost conf under /var/www/mrtg, and mrtg cfg under /etc/mrtg):
-`/usr/bin/cfgmaker \
---global "workdir: /var/www/mrtg"
---global "Options[_]: growright" \
---global 'Interval: 5' \
---global 'Refresh: 300' \
---if-template=basenet.template \
-'--if-filter=$if_admin && $default_iftype' \
---output /etc/mrtg/mrtg.cfg public@netapp`
+`/usr/bin/cfgmaker --global "workdir: /var/www/mrtg" --global "Options[_]: growright" --global 'Interval: 5' --global 'Refresh: 300' --if-template=basenet.template '--if-filter=$if_admin && $default_iftype' --output /etc/mrtg/mrtg.cfg public@freenas`
 
 
 `LANG=C LC_ALL=C /usr/bin/mrtg --debug "base" /etc/mrtg/mrtg.cfg --lock-file /var/lock/mrtg/mrtg_l --confcache-file /var/lib/mrtg/mrtg.ok`
