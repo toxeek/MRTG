@@ -2,7 +2,7 @@
 mrtg multi router grapher
 
 ## NOTES 
-in order to use nas-zfs.pl, you have to download FREENAS-MIB.txt from your FreeNAS. It is under 
+in order to use bin/nas-zfs.pl, you have to download FREENAS-MIB.txt from your FreeNAS. It is under 
 /usr/local/share/snmp/mibs/FREENAS-MIB.txt. Place it in your system (monitoring server) under
 `/usr/share/snmp/mibs/`
 Then just edit your snmpd.conf and add the following line:
@@ -10,6 +10,10 @@ Then just edit your snmpd.conf and add the following line:
 
 Then restart snmpd:
 `service snmpd restart`
+
+Make sure you edit mrtg.cfg and edit it as you wish, as this isn't "templated", specially the Target that relates to this section,
+`Target[IDHERE]: \`/etc/mrtg/bin/nas-disk.pl public freenas 38\``
+`public` is the community, `freenas` the host and `38` is the OID (see below).
 
 ### COMMENTS
 You could first run mrtg cfgmaker with the basenet template (considering you have apache with mrtg vhost conf under /var/www/mrtg, and mrtg cfg under /etc/mrtg):
