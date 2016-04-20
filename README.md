@@ -63,4 +63,4 @@ We would do those calculations for every volume, but that's done with the script
 ## TRY THIS to run mrtg with a nice debug output:
 `LANG=C LC_ALL=C /usr/bin/mrtg --debug "base" /etc/mrtg/mrtg.cfg --lock-file /var/lock/mrtg/mrtg_l --confcache-file /var/lib/mrtg/mrtg.ok`
 
-###### NETAPP template under templates, looks like a nice one to modify, I have added somethings but will keep adding for netapp users
+###### NETAPP template under templates directory, looks like a nice one to modify, I have added somethings but will keep adding for netapp users
