@@ -1,7 +1,7 @@
 # MRTG
 mrtg multi router grapher
 
-=== NOTES ===
+== NOTES ==
 in order to use nas-zfs.pl, you have to download FREENAS-MIB.txt from your FreeNAS. It is under 
 /usr/local/share/snmp/mibs/FREENAS-MIB.txt. Place it in your system (monitoring server) under
 `/usr/share/snmp/mibs/`
