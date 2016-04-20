@@ -1,0 +1,272 @@
+# ref: http://people.binf.ku.dk/~hanne/technotes/mrtg/template.txt
+
+
+$target_lines .= <<ECHO;
+
+Target[$target_name]: $if_ref:$router_connect
+SetEnv[$target_name]: MRTG_INT_IP="$if_ip" MRTG_INT_DESCR="$if_snmp_descr"
+ECHO
+
+if ($directory_name) {
+    $target_lines .= "Directory[$target_name]: $directory_name\n";
+}
+
+$target_lines .= <<ECHO;
+MaxBytes[$target_name]: $if_speed
+Title[$target_name]: $html_desc_prefix$html_if_title_desc -- $sysname
+PageTop[$target_name]: <H1>$html_desc_prefix$html_if_title_desc -- $sysname</H1>
+ <table>
+    <tr>
+    <td>System:</td>
+    <td>$sysname in $html_syslocation</td>
+    </tr>
+    <tr>
+    <td>Maintainer:</td>
+    <td>$html_syscontact</td>
+    </tr>
+    <tr>
+    <td>Description:</td>
+    <td>$html_if_description</td>
+    </tr>
+    <tr>
+    <td>ifType:</td>
+    <td>$html_if_type_desc ($if_type_num)</td>
+    </tr>
+    <tr>
+    <td>ifName:</td>
+    <td>$html_if_snmp_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if defined $if_port_name;
+    <tr>
+    <td>Port Name:</td>
+    <td>$if_port_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+    <tr>
+    <td>Max Speed:</td>
+    <td>$if_speed_str</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if $if_ip;
+    <tr>
+    <td>Ip:</td>
+    <td>$if_ip ($if_dns_name)</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+ </table>
+ECHO
+
+my $target_name_orig = $target_name;
+my $fisk = $target_name . ".bmcast";
+
+$target_name = $fisk;
+
+$target_lines .= <<ECHO;
+
+Target[$target_name]: 1.3.6.1.2.1.2.2.1.12.$if_ref&1.3.6.1.2.1.2.2.1.18.$if_ref:$router_connect
+SetEnv[$target_name]: MRTG_INT_IP="$if_ip" MRTG_INT_DESCR="$if_snmp_descr"
+ECHO
+
+if ($directory_name) {
+    $target_lines .= "Directory[$target_name]: $directory_name\n";
+}
+
+$target_lines .= <<ECHO;
+YLegend[$target_name]: Pkts per sec
+ShortLegend[$target_name]: Pkts/s
+MaxBytes[$target_name]: $if_speed
+Title[$target_name]: B/Mcast (Pkts/sec) for $html_if_title_desc -- $sysname
+PageTop[$target_name]: <H1>B/Mcast (Pkts/sec) for $html_if_title_desc -- $sysname</H1>
+ <table>
+    <tr>
+    <td>System:</td>
+    <td>$sysname in $html_syslocation</td>
+    </tr>
+    <tr>
+    <td>Maintainer:</td>
+    <td>$html_syscontact</td>
+    </tr>
+    <tr>
+    <td>Description:</td>
+    <td>$html_if_description</td>
+    </tr>
+    <tr>
+    <td>ifType:</td>
+    <td>$html_if_type_desc ($if_type_num)</td>
+    </tr>
+    <tr>
+    <td>ifName:</td>
+    <td>$html_if_snmp_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if defined $if_port_name;
+    <tr>
+    <td>Port Name:</td>
+    <td>$if_port_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+    <tr>
+    <td>Max Speed:</td>
+    <td>$if_speed_str</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if $if_ip;
+    <tr>
+    <td>Ip:</td>
+    <td>$if_ip ($if_dns_name)</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+ </table>
+ECHO
+
+$fisk = $target_name_orig . ".err";
+
+$target_name = $fisk;
+
+$target_lines .= <<ECHO;
+
+Target[$target_name]: ifInErrors.$if_ref&ifOutErrors.$if_ref:$router_connect
+SetEnv[$target_name]: MRTG_INT_IP="$if_ip" MRTG_INT_DESCR="$if_snmp_descr"
+Options[$target_name]: perhour,growright
+ECHO
+
+if ($directory_name) {
+    $target_lines .= "Directory[$target_name]: $directory_name\n";
+}
+
+$target_lines .= <<ECHO;
+YLegend[$target_name]: Pkts per hour
+ShortLegend[$target_name]: Pkts/h
+MaxBytes[$target_name]: $if_speed
+Title[$target_name]: Errors (Pkts/h) for $html_if_title_desc -- $sysname
+PageTop[$target_name]: <H1>Errors (Pkts/h) for $html_if_title_desc -- $sysname</H1>
+ <table>
+    <tr>
+    <td>System:</td>
+    <td>$sysname in $html_syslocation</td>
+    </tr>
+    <tr>
+    <td>Maintainer:</td>
+    <td>$html_syscontact</td>
+    </tr>
+    <tr>
+    <td>Description:</td>
+    <td>$html_if_description</td>
+    </tr>
+    <tr>
+    <td>ifType:</td>
+    <td>$html_if_type_desc ($if_type_num)</td>
+    </tr>
+    <tr>
+    <td>ifName:</td>
+    <td>$html_if_snmp_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if defined $if_port_name;
+    <tr>
+    <td>Port Name:</td>
+    <td>$if_port_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+    <tr>
+    <td>Max Speed:</td>
+    <td>$if_speed_str</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if $if_ip;
+    <tr>
+    <td>Ip:</td>
+    <td>$if_ip ($if_dns_name)</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+ </table>
+ECHO
+
+$fisk = $target_name_orig . ".drop";
+
+$target_name = $fisk;
+
+$target_lines .= <<ECHO;
+
+Target[$target_name]:  ifInDiscards.$if_ref&ifOutDiscards.$if_ref:$router_connect
+SetEnv[$target_name]: MRTG_INT_IP="$if_ip" MRTG_INT_DESCR="$if_snmp_descr"
+Options[$target_name]: perhour,growright
+ECHO
+
+if ($directory_name) {
+    $target_lines .= "Directory[$target_name]: $directory_name\n";
+}
+
+$target_lines .= <<ECHO;
+YLegend[$target_name]: Pkts per hour
+ShortLegend[$target_name]: Pkts/h
+MaxBytes[$target_name]: $if_speed
+Title[$target_name]: Drops (Pkts/h) for $html_if_title_desc -- $sysname
+PageTop[$target_name]: <H1>Drops (Pkts/h) for $html_if_title_desc -- $sysname</H1>
+ <table>
+    <tr>
+    <td>System:</td>
+    <td>$sysname in $html_syslocation</td>
+    </tr>
+    <tr>
+    <td>Maintainer:</td>
+    <td>$html_syscontact</td>
+    </tr>
+    <tr>
+    <td>Description:</td>
+    <td>$html_if_description</td>
+    </tr>
+    <tr>
+    <td>ifType:</td>
+    <td>$html_if_type_desc ($if_type_num)</td>
+    </tr>
+    <tr>
+    <td>ifName:</td>
+    <td>$html_if_snmp_name</td>
+    </tr>
+ECHO
+
+$target_lines .= <<ECHO if defined $if_port_name;
+   <tr>
+   <td>Port Name:</td>
+   <td>$if_port_name</td>
+   </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+   <tr>
+   <td>Max Speed:</td>
+   <td>$if_speed_str</td>
+   </tr>
+ECHO
+
+$target_lines .= <<ECHO if $if_ip;
+   <tr>
+   <td>Ip:</td>
+   <td>$if_ip ($if_dns_name)</td>
+   </tr>
+ECHO
+
+$target_lines .= <<ECHO;
+ </table>
+ECHO
+

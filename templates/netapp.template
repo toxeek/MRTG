@@ -1,0 +1,1489 @@
+##############################################################################
+# Netapp Filer cfgmaker template v20041103
+# Assembled by Greg Volk <gvolk@gvolk.com> from the netapp v1.5 (200205) mib.
+# See http://mrtg.gvolk.com for updates and more info about mrtg in general.
+#
+# Example Usage:
+# cfgmaker --host-template=host-netapp-filer.template --subdirs=HOSTNAME \
+#		   --nointerfaces public@host
+#
+#
+# Notes:
+# This template has been tested with the cfgmaker that was packaged with
+# mrtg-2.9.17. 
+#
+# It has been poll-tested on a Netapp F890 Filer.
+#
+# I used the --nointerfaces option above because these filers don't support
+# 64 bit ifHC counters for the network interfaces. Since they're gig attached 
+# and usually moving lots of data, to leave the 32 bit interface counter
+# polling enabled only produces a misleading graph. On the network side my 
+# filers are attached to cisco 6509s, so I get my interface in/out bytes 
+# from those 64 bit counters. I suggest you do the same if possible.
+#
+# Several of the template configs below use Target math to add high low
+# 32 bit counters. I think I'm doing it correctly, but please sanity check
+# this data before making any major from it. It sure would be nice if Netapp 
+# would wake up and smell the 64 bit counter revolution.
+#
+# There are many, many good variables to poll listed in the mib. The level
+# of detail available for different types of NFS and CIFS transactions is 
+# thorough. Because of time and usage constraints, I have implemented only a 
+# small subset of what's possible. If you add any additional config 
+# templates to this file, please send them to me for inclusion in the 
+# distribution.
+#
+#
+# This template is licensed under the GNU GPL. For more information, please
+# see http://www.gnu.org/copyleft/gpl.html.
+# 
+#
+# Version history:
+# 20030106 - Initial Release
+#
+# 20030417 - Changed MaxBytes values for several targets to prevent reboot
+#            spikes.
+#
+# 20041103 - Added the following targets: cpuswitchstats, cpuinterruptstats,
+#			 cifssuspectops, oplockbreakstats, cifslocks, cifsoplkbatchtol2s,
+#			 cifsoplkl2tonones, cifsoplkdelayedbreaks
+#			 Removed (commented out) the following targets because the results
+#			 were unreliable: diskreadwritebytes, tapereadwritebytes. 
+#
+
+
+###############################################################################
+#
+# cpuBusyTimePerCent            .1.3.6.1.4.1.789.1.2.1.3.0
+# The percent of time that the CPU has been doing useful work since the last
+# time a client requested the cpuBusyTimePerCent.
+#
+# cpuIdleTimePerCent            .1.3.6.1.4.1.789.1.2.1.5.0
+# The percent of time that the CPU has been idle since the last time a client
+# requested the cpuBusyTimePercent.
+#
+#
+
+my $target_name = $router_name . "-cpuTimePercent";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+
+ShortLegend[$target_name]: %
+YLegend[$target_name]: %
+Legend1[$target_name]: cpuBusyTimePerCent
+Legend2[$target_name]: cpuIdleTimePerCent
+Legend3[$target_name]: Maximal cpuBusyTimePercent
+Legend4[$target_name]: Maximal cpuIdleTimePercent
+LegendI[$target_name]: cpuBusyTimePerCent
+LegendO[$target_name]: cpuIdleTimePerCent
+Directory[$target_name]: $router_name
+WithPeak[$target_name]: ywm
+MaxBytes[$target_name]: 100
+Options[$target_name]: growright, gauge, nopercent
+Title[$target_name]: $router_name CPU Busy/Idle Time Percent
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.1.3.0&.1.3.6.1.4.1.789.1.2.1.5.0:$router_connect
+PageTop[$target_name]: <H1>$router_name CPU Busy/Idle Time Percent</H1>
+  <TABLE>
+	<TR><TD>System:</TD><TD>$router_name in $html_syslocation</TD></TR>
+	<TR><TD>Maintainer:</TD><TD>$html_syscontact</TD></TR>
+	<TR><TD VALIGN="top">Description:</TD><TD>$router_name CPU Busy/Idle Time Percent</TD></TR>
+    <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+	<TR><TD>Resource:</TD><TD><br>
+	cpuBusyTimePerCent            .1.3.6.1.4.1.789.1.2.1.3<br>
+	The percent of time that the CPU has been doing useful work since the 
+	last time a client requested the cpuBusyTimePerCent.<br><br>
+
+	cpuIdleTimePerCent            .1.3.6.1.4.1.789.1.2.1.5<br>
+	The percent of time that the CPU has been idle since the last time a 
+	client requested the cpuBusyTimePercent.
+	</TD></TR><br>
+  </TABLE>
+ECHO
+
+###############################################################################
+##
+## misc64DiskWriteBytes & misc64DiskWriteBytes     .1.3.6.1.4.1.789.1.2.2.33.0&.1.3.6.1.4.1.789.1.2.2.32
+## 
+## 
+##
+##
+#
+my $target_name = $router_name . "-misc64Disk";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: misc64DiskBitsWritten
+Legend2[$target_name]: misc64DiskBitsRead
+Legend3[$target_name]: Maximal misc64DiskBitsWritten
+Legend4[$target_name]: Maximal misk64DiskBitsRead
+LegendI[$target_name]: misc64DiskBitsWritten
+LegendO[$target_name]: misc64DiskBitsRead
+YLegend[$target_name]: bits
+ShortLegend[$target_name]: b/s
+Title[$target_name]: $router_name misc64Disk Read/Write bits
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.2.33.0&.1.3.6.1.4.1.789.1.2.2.32.0:$router_connect * 1000000
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000000
+Options[$target_name]: growright, nopercent, bits
+PageTop[$target_name]: <H1>$router_name miscDisk64 Read/Write bits per second</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation </TD></TR>
+   <TR><TD>Maintainer:</TD> <TD></TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name misc64Disk Read/Write bits</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+      misc64DiskBytesWritten            .1.3.6.1.4.1.789.1.2.2.33.0 * .0000080<br>
+      Number of Megabytes written to Disk converted to bits.<br><br>
+       miscDisk64BytesRead               .1.3.6.1.4.1.789.1.2.2.32. * .0000080<br>
+       Number of Megabytes read Disk converted to bits.<br>
+   </TD></TR><br>
+   </TABLE>
+ECHO
+#
+#
+###############################################################################
+#
+# cpuSwitchInvocations                  .1.3.6.1.4.1.789.1.2.1.7
+# The number of sk_switch invocations.
+#
+# cpuContextSwitches                  .1.3.6.1.4.1.789.1.2.1.8
+# The number of hardware context switches.
+#
+#
+
+my $target_name = $router_name . "-cpuswitchstats";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cpuSwitchInvocations
+Legend2[$target_name]: cpuContextSwitches
+Legend3[$target_name]: Maximal cpuSwitchInvocations
+Legend4[$target_name]: Maximal cpuContextSwitches
+LegendI[$target_name]: cpuSwitchInvocations
+LegendO[$target_name]: cpuContextSwitches
+YLegend[$target_name]: switch stats
+ShortLegend[$target_name]: per second
+Title[$target_name]: $router_name CPU switch statistics
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.1.7.0&.1.3.6.1.4.1.789.1.2.1.8.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 100000
+Options[$target_name]: growright, nopercent
+PageTop[$target_name]: <H1>$router_name CPU switch statistics</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CPU switch statistics</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cpuSwitchInvocations                  .1.3.6.1.4.1.789.1.2.1.7<br>
+    The number of sk_switch invocations.<br><br>
+
+    cpuContextSwitches                    .1.3.6.1.4.1.789.1.2.1.8<br>
+    The number of hardware context switches.<br>
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+###############################################################################
+#
+# cpuInterrupts                  .1.3.6.1.4.1.789.1.2.1.9
+# The number of interrupts during a CP.
+#
+# cpuNonCPInterrupts                  .1.3.6.1.4.1.789.1.2.1.10
+# The number of interrupts not during a CP
+#
+#
+
+my $target_name = $router_name . "-cpuinterruptstats";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cpuInterrupts
+Legend2[$target_name]: cpuNonCPInterrupts
+Legend3[$target_name]: Maximal cpuInterrupts
+Legend4[$target_name]: Maximal cpuNonCPInterrupts
+LegendI[$target_name]: cpuInterrupts
+LegendO[$target_name]: cpuNonCPInterrupts
+YLegend[$target_name]: ints/sec
+ShortLegend[$target_name]: per second
+Title[$target_name]: $router_name CPU interrupt statistics
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.1.9.0&.1.3.6.1.4.1.789.1.2.1.10.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent
+PageTop[$target_name]: <H1>$router_name CPU interrupt statistics</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CPU interrupt statistics</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cpuInterrupts                  .1.3.6.1.4.1.789.1.2.1.9<br>
+    The number of interrupts during a CP.<br><br>
+
+    cpuNonCPInterrupts             .1.3.6.1.4.1.789.1.2.1.10<br>
+    The number of interrupts not during a CP<br>
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+###############################################################################
+#
+# miscNetRcvdKB					.1.3.6.1.4.1.789.1.2.2.2.0
+# The total number of KBytes received on all the network interfaces, since 
+# the last boot.
+#
+# miscNetSentKB					.1.3.6.1.4.1.789.1.2.2.3.0
+# The total number of KBytes transmitted on all the network interfaces, since 
+# the last boot.
+#
+# Unlike the network interfaces, I chose to poll these vars because they are
+# in KBytes, not bytes. If I've done my math correctly, the aggregate transfer
+# rate across all the filer network interfaces would have to be greater than 
+# 114 Gbits/sec to wrap this 32 bit counter within five minutes. The data 
+# gets divided by 1000 to get bytes, then the bits option is used to convert 
+# it to bits.
+#
+# In testing, I have noticed the miscNetRcvdKB OID returns negative numbers,
+# and the miscNetSentKB OID always has a delta of 114532 KBytes per sec. 
+# Because of this, I have commented out this particular template.
+# Maybe this is fixed in a different netapp software release, or I have 
+# something screwed up.
+#
+#
+#my $target_name = $router_name . "-txrxkbytes";
+#
+#$head_lines .= <<ECHO;
+#
+#ECHO
+#
+#
+#$target_lines .= <<ECHO;
+#
+#
+#Title[$target_name]: $router_name TX/RX bits
+#Target[$target_name]: .1.3.6.1.4.1.789.1.2.2.2.0&.1.3.6.1.4.1.789.1.2.2.3.0:$router_connect / 1000
+#Directory[$target_name]: $router_name
+#MaxBytes[$target_name]: 120000000000
+#Options[$target_name]: growright, nopercent, bits
+#PageTop[$target_name]: <H1>$router_name TX/RX bits for all interfaces</H1>
+# <TABLE>
+#   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+#   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+#   <TR><TD>Description:</TD><TD>$router_name TX/RX bits</TD></TR>
+#   <TR><TD>Resource:</TD><TD><br>
+#	miscNetRcvdKB                 .1.3.6.1.4.1.789.1.2.2.2.0<br>
+#	The total number of KBytes received on all the network interfaces. This 
+#	is divided by 1000 and mulitiplied by 8 to get bits.<br><br>
+#
+#	miscNetSentKB                 .1.3.6.1.4.1.789.1.2.2.3.0<br>
+#	The total number of KBytes transmitted on all the network interfaces. 
+#	This is divided by 1000 and multiplied by 8 to get bits.<br><br>
+#  </TD></TR><br>
+#  </TABLE>
+#
+#ECHO
+#
+
+
+
+###############################################################################
+#
+# miscCacheAge					.1.3.6.1.4.1.789.1.2.2.23
+# Age in minutes of the oldest read-only blocks in the buffer cache. This 
+# indicates how fast read ops are cycling through system memory; when the
+# appliance is reading very large files (larger than the machine's memory
+# size), buffer cache age will be very low.
+#
+# I've seen this OID return some suspicously high numbers on not-so-busy
+# filers. Values like 41557 are not uncommon. I have to wonder if some files 
+# really have been cached for 33+ days, or if there is something bogus about
+# the number.
+#
+
+
+my $target_name = $router_name . "-misccacheage";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: miscCacheAge
+Legend2[$target_name]: miscCacheAge
+Legend3[$target_name]:
+Legend4[$target_name]:
+LegendI[$target_name]: miscCacheAge
+LegendO[$target_name]: miscCacheAge
+YLegend[$target_name]: minutes
+ShortLegend[$target_name]: minutes
+Title[$target_name]: $router_name Cache Age
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.2.23.0&.1.3.6.1.4.1.789.1.2.2.23.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 100000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name Cache Age</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name Cache Age</TD></TR>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	miscCacheAge                  .1.3.6.1.4.1.789.1.2.2.23<br>
+	Age in minutes of the oldest read-only blocks in the buffer cache. 
+	This indicates how fast read ops are cycling through system memory; when 
+	the appliance is reading very large files (larger than the machine's memory 
+	size), buffer cache age will be very low.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+###############################################################################
+#
+# miscHighDiskReadBytes + miscLowDiskReadBytes 
+# .1.3.6.1.4.1.789.1.2.2.15 + .1.3.6.1.4.1.789.1.2.2.16
+# The total number of bytes read from disk since the last boot.
+#
+# miscHighDiskWriteBytes + miscLowDiskWriteBytes
+# .1.3.6.1.4.1.789.1.2.2.17 + .1.3.6.1.4.1.789.1.2.2.18
+# The total number of bytes written from disk since the last boot.
+#
+# This template has been commented out because it produces bad results when
+# an interface is run beyond about 114 megabits/sec. It is a counter wrap
+# issue. Summing two 32 bit oid's _should_ work around it, but I'm either doing
+# something wrong in my summation, or the filer isn't updating both sets
+# of counters.
+#
+#
+#
+#
+#my $target_name = $router_name . "-diskreadwritebytes";
+#
+#$head_lines .= <<ECHO;
+#
+#ECHO
+#
+#
+#$target_lines .= <<ECHO;
+#
+#Legend1[$target_name]: Disk Read
+#Legend2[$target_name]: Disk Write
+#Legend3[$target_name]: Maximal Disk Read
+#Legend4[$target_name]: Maximal Disk Write
+#LegendI[$target_name]: read bits/sec
+#LegendO[$target_name]: write bits/sec
+#YLegend[$target_name]: bits
+#ShortLegend[$target_name]: b/s
+#Title[$target_name]: $router_name Disk Read/Write bits
+#Target[$target_name]: .1.3.6.1.4.1.789.1.2.2.16.0&.1.3.6.1.4.1.789.1.2.2.18.0:$router_connect + .1.3.6.1.4.1.789.1.2.2.17.0&.1.3.6.1.4.1.789.1.2.2.19.0:$router_connect:
+#Directory[$target_name]: $router_name
+#MaxBytes[$target_name]: 1000000000000
+#Options[$target_name]: growright, nopercent, bits
+#PageTop[$target_name]: <H1>$router_name Disk Read/Write bits/sec</H1>
+# <TABLE>
+#   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+#   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR> 
+#<TR><TD>Description:</TD><TD>$router_name Disk Read/Write bits</TD></TR>
+#   <TR><TD>ifType:</TD><TD>double 32 bit counter</TD></TR>
+#   <TR><TD>Resource:</TD><TD><br>
+#	(miscHighDiskReadBytes + miscLowDiskReadBytes) * 8<br>
+#	.1.3.6.1.4.1.789.1.2.2.15 + .1.3.6.1.4.1.789.1.2.2.16<br>
+#	The total number of bytes read from disk since the last boot. This 
+#	is summed and a delta is calculated from two 32 bit OIDs. The result 
+#	is multiplied by 8 to get bits.<br><br>
+#
+#	(miscHighDiskWriteBytes + miscLowDiskWriteBytes) * 8<br>
+#	.1.3.6.1.4.1.789.1.2.2.17 + .1.3.6.1.4.1.789.1.2.2.18<br>
+#	The total number of bytes written from disk since the last boot. This 
+#	is summed and a delta is calculated from two 32 bit OIDs. The result 
+#	is multiplied by 8 to get bits.<br>
+#
+#  </TD></TR><br>
+#  </TABLE>
+#
+#ECHO
+
+
+
+###############################################################################
+#
+# miscHighTapeReadBytes + miscLowTapeReadBytes 
+# .1.3.6.1.4.1.789.1.2.2.19 + .1.3.6.1.4.1.789.1.2.2.20
+# The total number of bytes read from tape since the last boot.
+#
+# miscHighTapeWriteBytes + miscLowTapeWriteBytes
+# .1.3.6.1.4.1.789.1.2.2.21 + .1.3.6.1.4.1.789.1.2.2.22
+# The total number of bytes written from tape since the last boot.
+#
+# This template has been commented out because it produces bad results when
+# an interface is run beyond about 114 megabits/sec. It is a counter wrap
+# issue. Summing two 32 bit oid's _should_ work around it, but I'm either doing
+# something wrong in my summation, or the filer isn't updating both sets
+# of counters.
+#
+#my $target_name = $router_name . "-tapereadwritebytes";
+#
+#$head_lines .= <<ECHO;
+#
+#ECHO
+#
+#
+#$target_lines .= <<ECHO;
+#
+#Legend1[$target_name]: Tape Read
+#Legend2[$target_name]: Tape Write
+#Legend3[$target_name]: Maximal Tape Read
+#Legend4[$target_name]: Maximal Tape Write
+#LegendI[$target_name]: read bits/sec
+#LegendO[$target_name]: write bits/sec
+#YLegend[$target_name]: bits
+#ShortLegend[$target_name]: b/s
+#Title[$target_name]: $router_name Tape Read/Write bits
+#Target[$target_name]: .1.3.6.1.4.1.789.1.2.2.19.0&.1.3.6.1.4.1.789.1.2.2.21.0:$router_connect + .1.3.6.1.4.1.789.1.2.2.20.0&.1.3.6.1.4.1.789.1.2.2.22.0:$router_connect:
+#Directory[$target_name]: $router_name
+#MaxBytes[$target_name]: 10000000
+#Options[$target_name]: growright, nopercent, bits
+#PageTop[$target_name]: <H1>$router_name Tape Read/Write bits/sec</H1>
+# <TABLE>
+#   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+#   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+#   <TR><TD>Description:</TD><TD>$router_name Tape Read/Write bits</TD></TR>
+#   <TR><TD>ifType:</TD><TD>double 32 bit counter</TD></TR>
+#   <TR><TD>Resource:</TD><TD><br>
+#	(miscHighTapeReadBytes + miscLowTapeReadBytes) * 8<br>
+#	.1.3.6.1.4.1.789.1.2.2.19 + .1.3.6.1.4.1.789.1.2.2.20<br>
+#	The total number of bytes read from tape since the last boot. This 
+#	is summed and a delta is calculated from two 32 bit OIDs. The result 
+#	is multiplied by 8 to get bits.<br><br>
+#
+#	(miscHighTapeWriteBytes + miscLowTapeWriteBytes) * 8<br>
+#	.1.3.6.1.4.1.789.1.2.2.21 + .1.3.6.1.4.1.789.1.2.2.22<br>
+#	The total number of bytes written from tape since the last boot. This 
+#	is summed and a delta is calculated from two 32 bit OIDs. The result 
+#	is multiplied by 8 to get bits.<br>
+#
+#  </TD></TR><br>
+#  </TABLE>
+#
+#ECHO
+#
+
+
+
+###############################################################################
+#
+# cpTotalOps				.1.3.6.1.4.1.789.1.2.6.8
+#
+# The total number of consistency point operations since boot
+#
+
+my $target_name = $router_name . "-cptotalops";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cpTotalOps
+Legend2[$target_name]: cpTotalOps
+Legend3[$target_name]: Maximal cpTotalOps
+Legend4[$target_name]: Maximal cpTotalOps
+LegendI[$target_name]: cp ops/min
+LegendO[$target_name]: cp ops/min
+YLegend[$target_name]: cp ops
+ShortLegend[$target_name]:
+Title[$target_name]: $router_name Consistency Point Operations
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.6.8.0&.1.3.6.1.4.1.789.1.2.6.8.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000
+Options[$target_name]: growright, nopercent, perminute
+PageTop[$target_name]: <H1>$router_name Consistency Point Operations per minute</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name Consistency Point Operations</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	cpTotalOps            .1.3.6.1.4.1.789.1.2.6.8 <br>
+	The total number of consistency point operations per minute<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+
+###############################################################################
+#
+# rpcCalls					.1.3.6.1.4.1.789.1.3.1.1.1
+# The total number of RPC calls received since the last time the stats were
+# cleared.
+#
+# nfsCalls					.1.3.6.1.4.1.789.1.3.1.2.1
+# The total number of NFS calls received since the last time the stats were
+# cleared.
+#
+#
+
+my $target_name = $router_name . "-rpcnfscalls";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: rpcCalls
+Legend2[$target_name]: nfsCalls
+Legend3[$target_name]: Maximal rpcCalls
+Legend4[$target_name]: Maximal nfsCalls
+LegendI[$target_name]: rpcCalls
+LegendO[$target_name]: nfsCalls
+YLegend[$target_name]: calls
+ShortLegend[$target_name]: c/s
+Title[$target_name]: $router_name RPC & NFS calls
+Target[$target_name]: .1.3.6.1.4.1.789.1.3.1.1.1.0&.1.3.6.1.4.1.789.1.3.1.2.1.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent
+PageTop[$target_name]: <H1>$router_name RPC & NFS calls per sec</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name RPC & NFS calls</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	rpcCalls                  .1.3.6.1.4.1.789.1.3.1.1.1<br>
+	The total number of RPC calls received.<br><br>
+
+	nfsCalls                  .1.3.6.1.4.1.789.1.3.1.2.1<br>
+	The total number of NFS calls received.<br>
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+
+###############################################################################
+#
+# rpcBadLen					.1.3.6.1.4.1.789.1.3.1.1.4
+# The number of RPC calls received with a length shorter than a minimum-sized
+# RPC call, since the last time the stats were cleared.
+#
+# rpcServXDRCalls			.1.3.6.1.4.1.789.1.3.1.1.5
+# The number of RPC calls received whose header could not be XDR decoded, 
+# since the last time the stats were cleared.
+#
+#
+
+my $target_name = $router_name . "-rpcbadcalls";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: rpcBadLen
+Legend2[$target_name]: rpcServXDRCalls
+Legend3[$target_name]: Maximal rpcBadLen
+Legend4[$target_name]: Maximal rpcServXDRCalls
+LegendI[$target_name]: rpcBadLen
+LegendO[$target_name]: rpcServXDRCalls
+YLegend[$target_name]: rpc errors
+ShortLegend[$target_name]: e/m
+Title[$target_name]: $router_name RPC errors
+Target[$target_name]: .1.3.6.1.4.1.789.1.3.1.1.4.0&.1.3.6.1.4.1.789.1.3.1.1.5.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent, perminute
+PageTop[$target_name]: <H1>$router_name RPC errors per minute</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name RPC errors</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	rpcBadLen                 .1.3.6.1.4.1.789.1.3.1.1.4<br>
+	The number of RPC calls received with a length shorter than a 
+	minimum-sized RPC call, since the last time the stats were cleared.<br><br>
+
+	rpcServXDRCalls           .1.3.6.1.4.1.789.1.3.1.1.5<br>
+	The number of RPC calls received whose header could not be XDR decoded,
+	since the last time the stats were cleared.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+###############################################################################
+#
+# nfsServerBadCalls				.1.3.6.1.4.1.789.1.3.1.2.2
+# The total number of received NFS calls rejected.
+#
+# cifsBadCalls					.1.3.6.1.4.1.789.1.7.3.1.1.3
+# The total number of received CIFS calls rejected.
+#
+#
+
+
+my $target_name = $router_name . "-nfscifsbadcalls";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: nfsServerBadCalls
+Legend2[$target_name]: cifsBadCalls
+Legend3[$target_name]: Maximal nfsServerBadCalls
+Legend4[$target_name]: Maximal cifsBadCalls
+LegendI[$target_name]: nfsServerBadCalls
+LegendO[$target_name]: cifsBadCalls
+YLegend[$target_name]: calls
+ShortLegend[$target_name]: c/m
+Title[$target_name]: $router_name Rejected NFS & CIFS calls
+Target[$target_name]: .1.3.6.1.4.1.789.1.3.1.2.2.0&.1.3.6.1.4.1.789.1.7.3.1.1.3.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent, perminute
+PageTop[$target_name]: <H1>$router_name Rejected NFS & CIFS calls per minute</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name NFS & CIFS calls</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	nfsServerBadCalls                   .1.3.6.1.4.1.789.1.3.1.2.2<br>
+	The total number of received NFS calls rejected, since the last time the
+	stats were cleared.<br><br>
+	cifsBadCalls                      .1.3.6.1.4.1.789.1.7.3.1.1.3<br>
+	The total number of received CIFS calls rejected.<br>
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+
+###############################################################################
+#
+# cfState					.1.3.6.1.4.1.789.1.2.3.2
+# Cluster Failover State
+#
+# cfPartnerStatus			.1.3.6.1.4.1.789.1.2.3.4
+# This is the status last returned by the Cluster Failover partner.
+#
+
+
+my $target_name = $router_name . "-cfstatus";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cfState
+Legend2[$target_name]: cfParternerStatus
+Legend3[$target_name]: &nbsp
+Legend4[$target_name]: &nbsp
+LegendI[$target_name]: cfState
+LegendO[$target_name]: cfPartnerStatus
+YLegend[$target_name]: status
+ShortLegend[$target_name]:
+Title[$target_name]: $router_name Cluster Failover Status
+Target[$target_name]: .1.3.6.1.4.1.789.1.2.3.2.0&.1.3.6.1.4.1.789.1.2.3.4.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name Cluster Failover Status</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+    <TR><TD VALIGN="top">Description:</TD><TD>$router_name CF Status Values<BR>
+			cfState:<br>
+			1) dead<br>
+			2) canTakeover<br>
+			3) cannotTakeover<br>
+			4) takeover<br><br>
+
+			cfPartnerStatus:<br>
+			1) maybeDown<br>
+			2) ok<br>
+			3) dead<br><br>
+    <TR><TD>ifType:</TD><TD>N/A</TD></TR>
+    <TR><TD>Resource:</TD><TD>
+	cfState                   .1.3.6.1.4.1.789.1.2.3.2<br>
+	Cluster Failover State<br><br>
+
+	cfPartnerStatus           .1.3.6.1.4.1.789.1.2.3.4<br>
+	The status last returned by the Cluster Failover partner.<br>
+  </TD></TR>
+  </TABLE>
+
+ECHO
+
+
+###############################################################################
+#
+# fsMaxUsedBytesPerCent			.1.3.6.1.4.1.789.1.5.7.3
+# The percentage of space currently in use by the file system which is most 
+# full.
+#
+# fsMaxUsedInodesPerCent		.1.3.6.1.4.1.789.1.5.7.4
+# The percentage of inodes currently in use by the file system which is most
+# full
+#
+
+
+my $target_name = $router_name . "-fsmaxused";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: fsMaxUsedBytesPerCent
+Legend2[$target_name]: fsMaxUsedInodesPerCent
+Legend3[$target_name]: Maximal fsMaxUsedBytesPerCent
+Legend4[$target_name]: Maximal fsMaxUsedInodesPerCent
+LegendI[$target_name]: fsMaxUsedBytesPerCent
+LegendO[$target_name]: fsMaxUsedInodesPerCent
+YLegend[$target_name]: %
+ShortLegend[$target_name]: %
+Title[$target_name]: $router_name max space & inode usage
+Target[$target_name]: .1.3.6.1.4.1.789.1.5.7.3.0&.1.3.6.1.4.1.789.1.5.7.4.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 100
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name maximum space & inode percent used</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name max space & inode usage</TD></TR>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	fsMaxUsedBytesPerCent             .1.3.6.1.4.1.789.1.5.7.3<br>
+	The percentage of space currently in use by the file system which 
+	is most full.<br><br>
+
+	fsMaxUsedInodesPerCent            .1.3.6.1.4.1.789.1.5.7.4<br>
+	The percentage of inodes currently in use by the file system which is 
+	most full.
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+
+###############################################################################
+#
+# diskTotalCount				.1.3.6.1.4.1.789.1.6.4.1
+# The total number of disks on the system.
+#
+# diskActiveCount				.1.3.6.1.4.1.789.1.6.4.2
+# The number of disks which are currently active including parity disks.
+#
+
+
+my $target_name = $router_name . "-disktotactcount";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: diskTotalCount
+Legend2[$target_name]: diskActiveCount
+Legend3[$target_name]: Maximal diskTotalCount
+Legend4[$target_name]: Maximal diskActiveCount
+LegendI[$target_name]: diskTotalCount
+LegendO[$target_name]: diskActiveCount
+YLegend[$target_name]: disks
+ShortLegend[$target_name]: disks
+Title[$target_name]: $router_name total & active disks
+Target[$target_name]: .1.3.6.1.4.1.789.1.6.4.1.0&.1.3.6.1.4.1.789.1.6.4.2.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 1000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name total & active disks</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name total & active disks</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+		diskTotalCount                    .1.3.6.1.4.1.789.1.6.4.1<br>
+		The total number of disks on the system.<br><br>
+
+		diskActiveCount                   .1.3.6.1.4.1.789.1.6.4.2<br>
+		The number of disks which are currently active including parity disks.
+  </TD></TR><br>
+  </TABLE>
+
+
+ECHO
+
+
+###############################################################################
+#
+# diskFailedCount				.1.3.6.1.4.1.789.1.6.4.7
+# The number of disks which are currently broken.
+#
+# diskSpareCount				.1.3.6.1.4.1.789.1.6.4.8
+# The number of available spare disks.
+#
+
+
+my $target_name = $router_name . "-diskfailsparecount";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: diskFailedCount
+Legend2[$target_name]: diskSpareCount
+Legend3[$target_name]: Maximal diskFailedCount
+Legend4[$target_name]: Maximal diskSpareCount
+LegendI[$target_name]: diskFailedCount
+LegendO[$target_name]: diskSpareCount
+YLegend[$target_name]: disks
+ShortLegend[$target_name]: disks
+Title[$target_name]: $router_name failed & spare disk count
+Target[$target_name]: .1.3.6.1.4.1.789.1.6.4.7.0&.1.3.6.1.4.1.789.1.6.4.8.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 1000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name failed & spare disk count</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name failed & spare disk count</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+		diskFailedCount                   .1.3.6.1.4.1.789.1.6.4.7<br>
+		The number of disks which are currently broken.<br><br>
+
+		diskSpareCount                    .1.3.6.1.4.1.789.1.6.4.8<br>
+		The number of available spare disks.<br>
+  </TD></TR><br>
+  </TABLE>
+
+
+ECHO
+
+
+
+
+###############################################################################
+#
+# cifsConnectedUsers			.1.3.6.1.4.1.789.1.7.2.9
+# The current number of CIFS users on the filer.
+#
+# cifsNSessions					.1.3.6.1.4.1.789.1.7.2.12
+# The current number of active CIFS sessions on the filer.
+#
+# Both of these OIDs are listed as counters in the mib, however I have 
+# observed them increasing and decreasing, so they're definitely gauges. 
+# I'm not sure if they are accurate, as I've seen them fluctuate by +/- 1000 
+# (out of 3800) between five minute poll intervals.
+#
+
+
+my $target_name = $router_name . "-cifsusersessions";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsConnectedUsers
+Legend2[$target_name]: cifsNSessions
+Legend3[$target_name]: Maximal cifsConnectedUsers
+Legend4[$target_name]: Maximal cifsNSessions
+LegendI[$target_name]: cifsConnectedUsers
+LegendO[$target_name]: cifsNSessions
+YLegend[$target_name]: users|sessions
+ShortLegend[$target_name]:
+Title[$target_name]: $router_name CIFS users & sessions
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.2.9.0&.1.3.6.1.4.1.789.1.7.2.12.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name CIFS users & sessions</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CIFS users & sessions</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+		cifsConnectedUsers                .1.3.6.1.4.1.789.1.7.2.9<br>
+		The current number of CIFS users on the filer.<br><br>
+
+		cifsNSessions                     .1.3.6.1.4.1.789.1.7.2.12<br>
+		The current number of active CIFS sessions on the filer.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+
+ECHO
+
+
+
+###############################################################################
+#
+# cifsNOpenFiles				.1.3.6.1.4.1.789.1.7.2.13
+# The number of open CIFS files and directories on the filer.
+#
+# cifsNOpenDirs					.1.3.6.1.4.1.789.1.7.2.14
+# The number of open CIFS directories on the filer.
+#
+# 
+# Yes, I'm confused as to why cifsNOpenFiles includes files and directories
+# while cifsNOpenDirs only counts directories. I got that variable definition 
+# from the netapp mib file so I included it in the web page Resource data.
+#
+
+
+my $target_name = $router_name . "-cifsfiledir";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsNOpenFiles
+Legend2[$target_name]: cifsNOpenDirs
+Legend3[$target_name]: Maximal cifsNOpenFiles
+Legend4[$target_name]: Maximal cifsNOpenDirs
+LegendI[$target_name]: cifsNOpenFiles
+LegendO[$target_name]: cifsNOpenDirs
+YLegend[$target_name]: files|dirs
+ShortLegend[$target_name]:
+Title[$target_name]: $router_name CIFS open files & directories
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.2.13.0&.1.3.6.1.4.1.789.1.7.2.14.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name CIFS open files & directories</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CIFS open files & directories</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+		cifsNOpenFiles                    .1.3.6.1.4.1.789.1.7.2.13<br>
+		The number of open CIFS files and directories on the filer.<br><br>
+
+		cifsNOpenDirs                     .1.3.6.1.4.1.789.1.7.2.14<br>
+		The number of open CIFS directories on the filer.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+
+ECHO
+
+
+
+###############################################################################
+#
+# cifsTotalOps					.1.3.6.1.4.1.789.1.7.3.1.1.1
+# The number of CIFS operations done by the filer.
+#
+# cifsTotalCalls				.1.3.6.1.4.1.789.1.7.3.1.1.2
+# The total number of CIFS calls received. This is the number of cifsTotalOps
+# plus the number of misc operations that are not logged.
+#
+
+
+my $target_name = $router_name . "-cifstotopscalls";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsTotalOps
+Legend2[$target_name]: cifsTotalCalls
+Legend3[$target_name]: Maximal cifsTotalOps
+Legend4[$target_name]: Maximal cifsTotalCalls
+LegendI[$target_name]: cifsTotalOps
+LegendO[$target_name]: cifsTotalCalls
+YLegend[$target_name]: ops|calls
+ShortLegend[$target_name]: c/s
+Title[$target_name]: $router_name total CIFS operations & calls
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.3.1.1.1.0&.1.3.6.1.4.1.789.1.7.3.1.1.2.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent
+PageTop[$target_name]: <H1>$router_name total CIFS operations & calls per second</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name total CIFS operations & calls</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	cifsTotalOps                      .1.3.6.1.4.1.789.1.7.3.1.1.1<br>
+	The number of CIFS operations done by the filer.<br><br>
+
+	cifsTotalCalls                    .1.3.6.1.4.1.789.1.7.3.1.1.2<br>
+	The total number of CIFS calls received. This is the number of 
+	cifsTotalOps plus the number of misc operations that are not 
+	logged.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+
+ECHO
+
+
+
+
+
+
+
+###############################################################################
+#
+# cifsReads						.1.3.6.1.4.1.789.1.7.3.1.1.5
+# The total number of CIFS read operations on a file or directory.
+# 
+# cifsWrites					.1.3.6.1.4.1.789.1.7.3.1.1.6
+# The total number of CIFS write operations on a file or directory.
+#
+#
+
+
+my $target_name = $router_name . "-cifsrwops";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsReads
+Legend2[$target_name]: cifsWrites
+Legend3[$target_name]: Maximal cifsReads
+Legend4[$target_name]: Maximal cifsWrites
+LegendI[$target_name]: cifsReads
+LegendO[$target_name]: cifsWrites
+YLegend[$target_name]: ops
+ShortLegend[$target_name]: o/s
+Title[$target_name]: $router_name CIFS Read/Write operations
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.3.1.1.5.0&.1.3.6.1.4.1.789.1.7.3.1.1.6.0:$router_connect
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent
+PageTop[$target_name]: <H1>$router_name CIFS Read/Write operations per second</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CIFS Read/Write operations</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	cifsReads                         .1.3.6.1.4.1.789.1.7.3.1.1.5<br>
+	The total number of CIFS read operations on a file or directory.<br><br>
+
+	cifsWrites                        .1.3.6.1.4.1.789.1.7.3.1.1.6<br>
+	The total number of CIFS write operations on a file or directory.<br>
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+###############################################################################
+#
+# cifsSuspectOps                .1.3.6.1.4.1.789.7.2.18
+#
+# A smoothed average of the number of events per second of the type frequently
+# seen during virus attacks.
+#
+
+my $target_name = $router_name . "-cifssuspectops";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsSuspectOps
+Legend2[$target_name]: cifsSuspectOps
+Legend3[$target_name]: Maximal cifsSuspectOps
+Legend4[$target_name]: Maximal cifsSuspectOps
+LegendI[$target_name]: ops/sec
+LegendO[$target_name]: ops/sec
+YLegend[$target_name]: cp ops
+ShortLegend[$target_name]:
+Title[$target_name]: $router_name CIFS suspect operations per second
+Target[$target_name]: .1.3.6.1.4.1.789.7.2.18.0&.1.3.6.1.4.1.789.7.2.18.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name CIFS suspect operations per second</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CIFS suspect operations per second</TD></TR>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cifsSuspectOps            .1.3.6.1.4.1.789.7.2.18 <br>
+    A smoothed average of the number of events per second of the type frequently seen during virus attacks.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+###############################################################################
+#
+# cifsNOplockBreakWaits                  .1.3.6.1.4.1.789.1.7.2.16
+# The number of open files waiting for oplock break messages to be sent.
+#
+# cifsNOplockAckWaits                  .1.3.6.1.4.1.789.1.7.2.17
+# The number of open files waiting for acknowledgements to oplock break messages
+#
+#
+
+my $target_name = $router_name . "-oplockbreakstats";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsNOplockBreakWaits
+Legend2[$target_name]: cifsNOplockAckWaits
+Legend3[$target_name]: Maximal cifsNOplockBreakWaits
+Legend4[$target_name]: Maximal cifsNOplockAckWaits
+LegendI[$target_name]: cifsNOplockBreakWaits
+LegendO[$target_name]: cifsNOplockAckWaits
+YLegend[$target_name]: oplock events
+ShortLegend[$target_name]:
+Title[$target_name]: $router_name oplock break statistics
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.2.16.0&.1.3.6.1.4.1.789.1.7.2.17.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 50000
+Options[$target_name]: growright, nopercent, gauge
+PageTop[$target_name]: <H1>$router_name oplock break statistics</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name oplock break statistics</TD></TR>
+   <TR><TD>ifType:</TD><TD>gauge</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cifsNOplockBreakWaits                  .1.3.6.1.4.1.789.1.7.2.16<br>
+    The number of open files waiting for oplock break messages to be sent.<br><br>
+
+    cifsNOplockAckWaits                    .1.3.6.1.4.1.789.1.7.2.17<br>
+    The number of open files waiting for acknowledgements to oplock break messages<br>
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+###############################################################################
+#
+# cifsLocks                .1.3.6.1.4.1.789.1.7.3.1.1.7
+#
+# The number of CIFS file locking requests since the last time the statistics
+# were reset.
+#
+#
+
+my $target_name = $router_name . "-cifslocks";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsLocks
+Legend2[$target_name]: cifsLocks
+Legend3[$target_name]: Maximal cifsLocks
+Legend4[$target_name]: Maximal cifsLocks
+LegendI[$target_name]: cifsLocks
+LegendO[$target_name]: cifsLocks
+YLegend[$target_name]: locks/sec
+ShortLegend[$target_name]: per second
+Title[$target_name]: $router_name CIFS file locking requests stats
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.3.1.1.7.0&.1.3.6.1.4.1.789.1.7.3.1.1.7.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000
+Options[$target_name]: growright, nopercent
+PageTop[$target_name]: <H1>$router_name CIFS file locking requests per second</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name CIFS file locking requests stats</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cifsLocks            .1.3.6.1.4.1.789.1.7.3.1.1.7 <br>
+    The number of CIFS file locking requests since the last time the statistics were reset.<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+###############################################################################
+#
+# cifsOpLkBatchToL2s                .1.3.6.1.4.1.789.1.7.4.17
+#
+# The number of CIFS file locking requests since the last time the statistics
+# were reset.
+#
+#
+
+my $target_name = $router_name . "-cifsoplkbatchtol2s";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsOpLkBatchToL2s
+Legend2[$target_name]: cifsOpLkBatchToL2s
+Legend3[$target_name]: Maximal cifsOpLkBatchToL2s
+Legend4[$target_name]: Maximal cifsOpLkBatchToL2s
+LegendI[$target_name]: cifsOpLkBatchToL2s
+LegendO[$target_name]: cifsOpLkBatchToL2s
+YLegend[$target_name]: ops / minute
+ShortLegend[$target_name]: per minute
+Title[$target_name]: $router_name cifsOpLkBatchToL2s
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.4.17.0&.1.3.6.1.4.1.789.1.7.4.17.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000
+Options[$target_name]: growright, nopercent, perminute
+PageTop[$target_name]: <H1>$router_name cifsOpLkBatchToL2s</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name cifsOpLkBatchToL2s</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cifsOpLkBatchToL2s            .1.3.6.1.4.1.789.1.7.4.17 <br>
+    Undocumented MIB variable<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+
+###############################################################################
+#
+# cifsOpLkL2ToNones                .1.3.6.1.4.1.789.1.7.4.19
+#
+# Undocumented MIB variable
+#
+#
+
+my $target_name = $router_name . "-cifsoplkl2tonones";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsOpLkL2ToNones
+Legend2[$target_name]: cifsOpLkL2ToNones
+Legend3[$target_name]: Maximal cifsOpLkL2ToNones
+Legend4[$target_name]: Maximal cifsOpLkL2ToNones
+LegendI[$target_name]: cifsOpLkL2ToNones
+LegendO[$target_name]: cifsOpLkL2ToNones
+YLegend[$target_name]: ops / minute
+ShortLegend[$target_name]: per minute
+Title[$target_name]: $router_name cifsOpLkL2ToNones
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.4.19.0&.1.3.6.1.4.1.789.1.7.4.19.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000
+Options[$target_name]: growright, nopercent, perminute
+PageTop[$target_name]: <H1>$router_name cifsOpLkL2ToNones</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name cifsOpLkL2ToNones</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cifsOpLkL2ToNones            .1.3.6.1.4.1.789.1.7.4.19 <br>
+    Undocumented MIB variable<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+###############################################################################
+#
+# cifsOpLkDelayedBreaks                .1.3.6.1.4.1.789.1.7.4.25
+#
+# Undocumented MIB entry
+#
+#
+
+my $target_name = $router_name . "-cifsoplkdelayedbreaks";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: cifsOpLkDelayedBreaks
+Legend2[$target_name]: cifsOpLkDelayedBreaks
+Legend3[$target_name]: Maximal cifsOpLkDelayedBreaks
+Legend4[$target_name]: Maximal cifsOpLkDelayedBreaks
+LegendI[$target_name]: cifsOpLkDelayedBreaks
+LegendO[$target_name]: cifsOpLkDelayedBreaks
+YLegend[$target_name]: ops / minute
+ShortLegend[$target_name]: per minute
+Title[$target_name]: $router_name cifsOpLkDelayedBreaks
+Target[$target_name]: .1.3.6.1.4.1.789.1.7.4.25.0&.1.3.6.1.4.1.789.1.7.4.25.0:$router_connect:
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000
+Options[$target_name]: growright, nopercent, perminute
+PageTop[$target_name]: <H1>$router_name cifsOpLkDelayedBreaks</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name cifsOpLkDelayedBreaks</TD></TR>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+    cifsOpLkDelayedBreaks            .1.3.6.1.4.1.789.1.7.4.25 <br>
+    Undocumented MIB entry<br>
+
+  </TD></TR><br>
+  </TABLE>
+
+ECHO
+
+
+
+
+
+###############################################################################
+#
+# snapmirrorBytesWritten		.1.3.6.1.4.1.789.1.9.10
+# Number of Megabytes written by SnapMirror.
+#
+# snapmirrorBytesRead			.1.3.6.1.4.1.789.1.9.11
+# Number of Megabytes read by SnapMirror.
+#
+# I'm multiplying by 1000000 on the target line to get bytes, and then using 
+# the bits option to get bits.
+
+
+my $target_name = $router_name . "-snapmirrorbytes";
+
+$head_lines .= <<ECHO;
+
+ECHO
+
+
+$target_lines .= <<ECHO;
+
+Legend1[$target_name]: snapmirrorBitsWritten
+Legend2[$target_name]: snapmirrorBitsRead
+Legend3[$target_name]: Maximal snapmirrorBitsWritten
+Legend4[$target_name]: Maximal snapmirrorBitsRead
+LegendI[$target_name]: snapmirrorBitsWritten
+LegendO[$target_name]: snapmirrorBitsRead
+YLegend[$target_name]: bits
+ShortLegend[$target_name]: b/s
+Title[$target_name]: $router_name snapmirror Read/Write bits
+Target[$target_name]: .1.3.6.1.4.1.789.1.9.10.0&.1.3.6.1.4.1.789.1.9.11.0:$router_connect * 1000000
+Directory[$target_name]: $router_name
+MaxBytes[$target_name]: 10000000
+Options[$target_name]: growright, nopercent, bits
+PageTop[$target_name]: <H1>$router_name snapmirror Read/Write bits per second</H1>
+ <TABLE>
+   <TR><TD>System:</TD>     <TD>$router_name in $html_syslocation</TD></TR>
+   <TR><TD>Maintainer:</TD> <TD>$html_syscontact</TD></TR>
+   <TR><TD>Description:</TD><TD>$router_name snapmirror Read/Write bits</TD></TR><br>
+   <TR><TD>ifType:</TD><TD>counter</TD></TR>
+   <TR><TD>Resource:</TD><TD><br>
+	snapmirrorBytesWritten            .1.3.6.1.4.1.789.1.9.10 * .0000080<br>
+	Number of Megabytes written by SnapMirror converted to bits.<br><br>
+
+	snapmirrorBytesRead               .1.3.6.1.4.1.789.1.9.11 * .0000080<br>
+	Number of Megabytes read by SnapMirror converted to bits.<br>
+  </TD></TR><br>
+  </TABLE>
+
+
+ECHO
+
+
