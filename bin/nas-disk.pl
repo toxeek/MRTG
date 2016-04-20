@@ -5,7 +5,7 @@
 # below are the volumes I gathered with 
 # for m in {1..70}; do snmpget -v2c -c public 192.168.4.3  HOST-RESOURCES-MIB::hrStorageDescr.$m; done
 #
-# I don't check for args passed, it takes just two: community and host, e.g:
+# I don't check for args passed, it takes just three: community, host and Vol_OID, e.g:
 # ./script public 192.168.4.3 vol_OID_number
 #
 # this is information i could extract with snmpget:
