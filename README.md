@@ -12,7 +12,7 @@ Then restart snmpd:
 `service snmpd restart`
 
 Make sure you edit mrtg.cfg and edit it as you wish, as this isn't "templated", specially the Target that relates to this section,
-`Target[IDHERE]: \`/etc/mrtg/bin/nas-disk.pl public freenas 38\``
+**Target[IDHERE]: \`/etc/mrtg/bin/nas-disk.pl public freenas 38\`**
 `public` is the community, `freenas` the host and `38` is the OID (see below).
 
 ### COMMENTS
