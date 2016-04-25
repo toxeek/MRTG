@@ -52,7 +52,7 @@ HOST-RESOURCES-MIB::hrStorageUsed.37 = INTEGER: 104
 
 Now we'd do:
 `1024*1872072720 = 1917002465280 Bytes disk space for volume at .37`
-`1024*104 = 53248 Bytes used disk for volume at .37`
+`1024*104 = 106496 Bytes used disk for volume at .37`
 
 If you want the size on Gi just divide the result by /1024/1024/1024, e.g: 
 `1024*1872072720 = 11917002465280; 917002465280/1024/1024/1024 = 1785.3 Gi`
