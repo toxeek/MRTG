@@ -52,10 +52,10 @@ HOST-RESOURCES-MIB::hrStorageUsed.37 = INTEGER: 104
 
 Now we'd do:
 `1024*1872072720 = 1917002465280 Bytes disk space for volume at .37`
-`512*104 = 53248 Bytes used disk for volume at .37`
+`1024*104 = 53248 Bytes used disk for volume at .37`
 
 If you want the size on Gi just divide the result by /1024/1024/1024, e.g: 
-`1917002465280/1024/1024/1024 = 1785.3 Gi`
+`1024*1872072720 = 11917002465280; 917002465280/1024/1024/1024 = 1785.3 Gi`
 
 We would do those calculations for every volume, but that's done with the script under bin/nas-disk.pl. The mrtg.cfg has a Target[] that includes this external script, just change the parameters to suit your context within the same mrtg.cfg file.
 
