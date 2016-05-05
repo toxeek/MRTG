@@ -59,7 +59,9 @@ If you want the size on Gi just divide the result by /1024/1024/1024, e.g:
 
 We would do those calculations for every volume, but that's done with the script under bin/nas-disk.pl. The mrtg.cfg has a Target[] that includes this external script, just change the parameters to suit your context within the same mrtg.cfg file.
 
-
+```
+UPDATE: I have included a cfg file to use with routers2.cgi frontend and using RRDTool
+```
 ## Try this to run mrtg with a nice debug output:
 `LANG=C LC_ALL=C /usr/bin/mrtg --debug "base" /etc/mrtg/mrtg.cfg --lock-file /var/lock/mrtg/mrtg_l --confcache-file /var/lib/mrtg/mrtg.ok`
 
