@@ -66,4 +66,4 @@ UPDATE: I have included a cfg file to use with routers2.cgi frontend and using R
 `LANG=C LC_ALL=C /usr/bin/mrtg --debug "base" /etc/mrtg/mrtg.cfg --lock-file /var/lock/mrtg/mrtg_l --confcache-file /var/lib/mrtg/mrtg.ok`
 
 ###### NETAPP template under templates directory, looks like a nice one to modify, I have added somethings but will keep adding for netapp users. 
-##### UPDATE: added cfg file for a netapp filer, under conf directory. will clean up and add everything to the template anytime soon (when I have some time), so this file will disappear sometime soon and will leave just the template.
+##### UPDATE: added cfg file for a netapp filer using routers2.cgi front end, under conf directory. will clean up and add everything to the template anytime soon (when I have some time), so this file will disappear sometime soon and will leave just the template.
