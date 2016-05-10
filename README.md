@@ -65,4 +65,5 @@ UPDATE: I have included a cfg file to use with routers2.cgi frontend and using R
 ## Try this to run mrtg with a nice debug output:
 `LANG=C LC_ALL=C /usr/bin/mrtg --debug "base" /etc/mrtg/mrtg.cfg --lock-file /var/lock/mrtg/mrtg_l --confcache-file /var/lib/mrtg/mrtg.ok`
 
-###### NETAPP template under templates directory, looks like a nice one to modify, I have added somethings but will keep adding for netapp users
+###### NETAPP template under templates directory, looks like a nice one to modify, I have added somethings but will keep adding for netapp users. 
+##### UPDATE: added cfg file for a netapp filer, under conf directory
